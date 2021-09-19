@@ -1,15 +1,19 @@
 const chaiHttp = require('chai-http')
 const chai = require('chai')
+const { times } = require('lodash')
 const faker = require('faker')
 const { assert, expect } = chai
 const chaiDateString = require('chai-date-string')
 
 const server = require('../server')
+const { Issue } = require('../models')
 
 chai.use(chaiHttp)
 chai.use(chaiDateString)
 
 suite('Functional Tests', function () {
+  setup(() => Issue.destroy({ where: {} }))
+
   /** You can send a POST request to /api/issues/{projectname} with form data
    * containing the required fields issue_title, issue_text, created_by, and
    * optionally assigned_to and status_text. You can send a POST request
@@ -106,7 +110,50 @@ suite('Functional Tests', function () {
       })
   })
 
-  test('View issues on a project: GET request to /api/issues/{project}')
+  test('View issues on a project: GET request to /api/issues/{project}', done => {
+    const mockIssues = times(3, () => ({
+      issue_title: faker.lorem.sentence(),
+      issue_text: faker.lorem.sentences(),
+      created_by: faker.name.firstName(),
+    }))
+
+    Promise.all(
+      mockIssues.map(issue =>
+        chai //
+          .request(server)
+          .post('/api/issues/{project}')
+          .send(issue)
+      )
+    ).then(() => {
+      chai
+        .request(server)
+        .get('/api/issues/{project}')
+        .end((err, res) => {
+          expect(res).to.be.json
+
+          const json = JSON.parse(res.body)
+
+          assert.isArray(json)
+          assert.lengthOf(json, 3)
+
+          json.forEach((issue, index) => {
+            const { issue_title, issue_text, created_by } = mockIssues[index]
+
+            assert.equal(issue.issue_title, issue_title)
+            assert.equal(issue.issue_text, issue_text)
+            assert.equal(issue.created_by, created_by)
+            assert.property(issue, 'assigned_to')
+            assert.property(issue, 'status_text')
+            assert.property(issue, 'open')
+            assert.property(issue, 'created_on')
+            assert.property(issue, 'updated_on')
+            assert.property(issue, '_id')
+          })
+
+          done()
+        })
+    })
+  })
 
   test('View issues on a project with one filter: GET request to /api/issues/{project}')
 

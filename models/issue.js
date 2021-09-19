@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Issue.init(
     {
+      _id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       issue_title: DataTypes.STRING,
       issue_text: DataTypes.STRING,
       created_on: DataTypes.DATE,

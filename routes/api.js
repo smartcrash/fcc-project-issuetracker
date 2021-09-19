@@ -9,7 +9,7 @@ module.exports = function (app) {
     .route('/api/issues/:project')
 
     .get(function (req, res) {
-      let project = req.params.project
+      Issue.findAll().then(issues => res.json(JSON.stringify(issues)))
     })
 
     .post(function (req, res) {
