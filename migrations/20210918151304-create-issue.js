@@ -36,18 +36,17 @@ module.exports = {
 
       assigned_to: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
 
       open: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true,
         allowNull: false,
       },
 
       status_text: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
     })
   },
