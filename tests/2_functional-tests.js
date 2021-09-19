@@ -373,9 +373,66 @@ suite('Functional Tests', function () {
       })
   })
 
-  test('Delete an issue: DELETE request to /api/issues/{project}')
+  /**
+   * You can send a DELETE request to /api/issues/{projectname} with an _id to
+   * delete an issue. If no _id is sent, the return value is { error: 'missing _id' }.
+   * On success, the return value is { result: 'successfully deleted', '_id': _id }.
+   * On failure, the return value is { error: 'could not delete', '_id': _id }.
+   */
+  test('Delete an issue: DELETE request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .post('/api/issues/{project}')
+      .send({
+        issue_title: faker.lorem.sentence(),
+        issue_text: faker.lorem.sentences(),
+        created_by: faker.name.firstName(),
+      })
+      .end((err, res) => {
+        const itemToDelete = res.body
 
-  test('Delete an issue with an invalid _id: DELETE request to /api/issues/{project}')
+        chai
+          .request(server)
+          .delete('/api/issues/{project}')
+          .send({ _id: itemToDelete._id })
+          .end((err, res) => {
+            expect(res.body).to.eql({
+              result: 'successfully deleted',
+              _id: itemToDelete._id,
+            })
 
-  test('Delete an issue with missing _id: DELETE request to /api/issues/{project}')
+            chai
+              .request(server)
+              .get(`/api/issues/{project}?_id=${itemToDelete._id}`)
+              .end((err, res) => {
+                const body = JSON.parse(res.body)
+                assert.isArray(body)
+                assert.lengthOf(body, 0)
+                done()
+              })
+          })
+      })
+  })
+
+  test('Delete an issue with an invalid _id: DELETE request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .delete('/api/issues/{project}')
+      .send({ _id: 'f00b4r' })
+      .end((err, res) => {
+        expect(res.body).to.eql({ error: 'could not delete', _id: 'f00b4r' })
+        done()
+      })
+  })
+
+  test('Delete an issue with missing _id: DELETE request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .delete('/api/issues/{project}')
+      .send({})
+      .end((err, res) => {
+        expect(res.body).to.eql({ error: 'missing _id' })
+        done()
+      })
+  })
 })
