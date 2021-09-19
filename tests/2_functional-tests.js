@@ -155,9 +155,93 @@ suite('Functional Tests', function () {
     })
   })
 
-  test('View issues on a project with one filter: GET request to /api/issues/{project}')
+  /** You can send a GET request to /api/issues/{projectname} and filter the
+   * request by also passing along any field and value as a URL query
+   * (ie. /api/issues/{project}?open=false). You can pass one or more
+   * field/value pairs at once.
+   * */
 
-  test('View issues on a project with multiple filters: GET request to /api/issues/{project}')
+  test('View issues on a project with one filter: GET request to /api/issues/{project}', done => {
+    const mockIssue = {
+      issue_title: faker.lorem.sentence(),
+      issue_text: faker.lorem.sentences(),
+    }
+
+    Promise.all([
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Alice' }),
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Alice' }),
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Carol' }),
+    ]).then(() => {
+      chai
+        .request(server)
+        .get('/api/issues/{project}?created_by=Alice')
+        .end((err, res) => {
+          assert.isArray(JSON.parse(res.body))
+          assert.lengthOf(JSON.parse(res.body), 2)
+
+          chai
+            .request(server)
+            .get('/api/issues/{project}?created_by=Carol')
+            .end((err, res) => {
+              assert.isArray(JSON.parse(res.body))
+              assert.lengthOf(JSON.parse(res.body), 1)
+              done()
+            })
+        })
+    })
+  })
+
+  test('View issues on a project with multiple filters: GET request to /api/issues/{project}', done => {
+    const mockIssue = {
+      issue_title: faker.lorem.sentence(),
+      issue_text: faker.lorem.sentences(),
+    }
+
+    Promise.all([
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Alice', assigned_to: 'Bob' }),
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Alice', assigned_to: 'Bob' }),
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Alice', assigned_to: 'Eric' }),
+      chai
+        .request(server)
+        .post('/api/issues/{project}')
+        .send({ ...mockIssue, created_by: 'Carol', assigned_to: 'Eric' }),
+    ]).then(() => {
+      chai
+        .request(server)
+        .get('/api/issues/{project}?created_by=Alice&assigned_to=Bob')
+        .end((err, res) => {
+          assert.isArray(JSON.parse(res.body))
+          assert.lengthOf(JSON.parse(res.body), 2)
+
+          chai
+            .request(server)
+            .get('/api/issues/{project}?created_by=Carol&assigned_to=Eric')
+            .end((err, res) => {
+              assert.isArray(JSON.parse(res.body))
+              assert.lengthOf(JSON.parse(res.body), 1)
+              done()
+            })
+        })
+    })
+  })
 
   test('Update one field on an issue: PUT request to /api/issues/{project}')
 

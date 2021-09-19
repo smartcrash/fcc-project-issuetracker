@@ -9,7 +9,9 @@ module.exports = function (app) {
     .route('/api/issues/:project')
 
     .get(function (req, res) {
-      Issue.findAll().then(issues => res.json(JSON.stringify(issues)))
+      const filters = pick(req.query, ['created_by', 'assigned_to'])
+
+      Issue.findAll({ where: filters }).then(issues => res.json(JSON.stringify(issues)))
     })
 
     .post(function (req, res) {
