@@ -1,7 +1,7 @@
 'use strict'
 
 const Joi = require('joi')
-const { pick } = require('lodash')
+const { pick, omit, isUndefined, isNull, keys, compact } = require('lodash')
 const { Issue } = require('../models')
 
 module.exports = function (app) {
@@ -9,7 +9,7 @@ module.exports = function (app) {
     .route('/api/issues/:project')
 
     .get(function (req, res) {
-      const filters = pick(req.query, ['created_by', 'assigned_to'])
+      const filters = pick(req.query, ['_id', 'created_by', 'assigned_to', 'open'])
 
       Issue.findAll({ where: filters }).then(issues => res.json(JSON.stringify(issues)))
     })
@@ -35,7 +35,21 @@ module.exports = function (app) {
     })
 
     .put(function (req, res) {
-      let project = req.params.project
+      const { _id } = req.body
+      const update = omit(req.body, ['_id'])
+
+      if (isUndefined(_id) || isNull(_id)) return res.json({ error: 'missing _id' })
+      if (keys(update).length === 0) return res.json({ error: 'no update field(s) sent', _id })
+
+      Issue.update({ ...update }, { where: { _id } })
+        .then(result => {
+          if (result[0] > 0) {
+            res.json({ result: 'successfully updated', _id })
+          } else {
+            res.json({ error: 'could not update', _id })
+          }
+        })
+        .catch(() => res.json({ error: 'could not update', _id }))
     })
 
     .delete(function (req, res) {

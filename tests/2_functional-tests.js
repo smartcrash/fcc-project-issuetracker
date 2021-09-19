@@ -243,15 +243,135 @@ suite('Functional Tests', function () {
     })
   })
 
-  test('Update one field on an issue: PUT request to /api/issues/{project}')
+  /** You can send a PUT request to /api/issues/{projectname} with an _id and
+   * one or more fields to update. On success, the updated_on field should be
+   * updated, and returned should be {  result: 'successfully updated', '_id': _id }.
+   * */
 
-  test('Update multiple fields on an issue: PUT request to /api/issues/{project}')
+  test('Update one field on an issue: PUT request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .post('/api/issues/{project}')
+      .send({
+        issue_title: faker.lorem.sentence(),
+        issue_text: faker.lorem.sentences(),
+        created_by: faker.name.firstName(),
+      })
+      .end((err, res) => {
+        const itemToUpdate = res.body
 
-  test('Update an issue with missing _id: PUT request to /api/issues/{project}')
+        chai
+          .request(server)
+          .put('/api/issues/{project}')
+          .send({ _id: itemToUpdate._id, issue_text: 'New Issue Text' })
+          .end((err, res) => {
+            expect(res.body).to.eql({
+              result: 'successfully updated',
+              _id: itemToUpdate._id,
+            })
 
-  test('Update an issue with no fields to update: PUT request to /api/issues/{project}')
+            chai
+              .request(server)
+              .get(`/api/issues/{project}?_id=${itemToUpdate._id}`)
+              .end((err, res) => {
+                const body = JSON.parse(res.body)
+                assert.isArray(body)
+                assert.isObject(body[0])
+                assert.equal(body[0].issue_text, 'New Issue Text')
+                assert.isAbove(Date.parse(body[0].updated_on), Date.parse(body[0].created_on))
+                done()
+              })
+          })
+      })
+  })
 
-  test('Update an issue with an invalid _id: PUT request to /api/issues/{project}')
+  test('Update multiple fields on an issue: PUT request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .post('/api/issues/{project}')
+      .send({
+        issue_title: faker.lorem.sentence(),
+        issue_text: faker.lorem.sentences(),
+        created_by: faker.name.firstName(),
+      })
+      .end((err, res) => {
+        const itemToUpdate = res.body
+
+        chai
+          .request(server)
+          .put('/api/issues/{project}')
+          .send({
+            _id: itemToUpdate._id,
+            issue_title: 'New Issue Title',
+            issue_text: 'New Issue Text',
+          })
+          .end((err, res) => {
+            expect(res.body).to.eql({
+              result: 'successfully updated',
+              _id: itemToUpdate._id,
+            })
+
+            chai
+              .request(server)
+              .get(`/api/issues/{project}?_id=${itemToUpdate._id}`)
+              .end((err, res) => {
+                const body = JSON.parse(res.body)
+                assert.isArray(body)
+                assert.isObject(body[0])
+                assert.equal(body[0].issue_title, 'New Issue Title')
+                assert.equal(body[0].issue_text, 'New Issue Text')
+                done()
+              })
+          })
+      })
+  })
+
+  /**
+   * When the PUT request sent to /api/issues/{projectname} does not include an
+   * _id, the return value is { error: 'missing _id' }.
+   */
+  test('Update an issue with missing _id: PUT request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .put('/api/issues/{project}')
+      .send({
+        issue_title: 'New Issue Title',
+        issue_text: 'New Issue Text',
+      })
+      .end((err, res) => {
+        expect(res.body).to.eql({ error: 'missing _id' })
+        done()
+      })
+  })
+
+  /** When the PUT request sent to /api/issues/{projectname} does not include
+   * update fields, the return value is { error: 'no update field(s) sent', '_id': _id }.
+   * On any other error, the return value is { error: 'could not update', '_id': _id }.
+   * */
+  test('Update an issue with no fields to update: PUT request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .put('/api/issues/{project}')
+      .send({ _id: 1 })
+      .end((err, res) => {
+        expect(res.body).to.eql({ error: 'no update field(s) sent', _id: 1 })
+        done()
+      })
+  })
+
+  test('Update an issue with an invalid _id: PUT request to /api/issues/{project}', done => {
+    chai
+      .request(server)
+      .put('/api/issues/{project}')
+      .send({
+        _id: 'f00b4r',
+        issue_text: faker.lorem.sentences(),
+      })
+      .end((err, res) => {
+        expect(res.body).to.eql({ error: 'could not update', _id: 'f00b4r' })
+        done()
+      })
+  })
 
   test('Delete an issue: DELETE request to /api/issues/{project}')
 
