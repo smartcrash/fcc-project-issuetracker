@@ -324,6 +324,7 @@ suite('Functional Tests', function () {
                 assert.isObject(body[0])
                 assert.equal(body[0].issue_title, 'New Issue Title')
                 assert.equal(body[0].issue_text, 'New Issue Text')
+                assert.isAbove(Date.parse(body[0].updated_on), Date.parse(body[0].created_on))
                 done()
               })
           })
