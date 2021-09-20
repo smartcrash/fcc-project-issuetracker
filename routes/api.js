@@ -6,15 +6,17 @@ const { Issue } = require('../models')
 
 module.exports = function (app) {
   app
-    .route('/api/issues/:project')
+    .route('/api/issues/:projectname')
 
     .get(function (req, res) {
+      const { projectname } = req.params
       const filters = pick(req.query, ['_id', 'created_by', 'assigned_to', 'open'])
 
-      Issue.findAll({ where: filters }).then(issues => res.json(JSON.stringify(issues)))
+      Issue.findAll({ where: { ...filters, projectname } }).then(issues => res.json(JSON.stringify(issues)))
     })
 
     .post(function (req, res) {
+      const { projectname } = req.params
       const issue = pick(req.body, ['issue_title', 'issue_text', 'created_by', 'assigned_to', 'status_text'])
 
       const validation = Joi.object({
@@ -29,7 +31,7 @@ module.exports = function (app) {
         return res.json({ error: 'required field(s) missing' })
       }
 
-      Issue.create({ ...issue })
+      Issue.create({ ...issue, projectname })
         .then(issue =>
           res.json({
             ...issue.toJSON(),

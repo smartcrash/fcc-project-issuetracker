@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       assigned_to: { type: DataTypes.STRING, defaultValue: '' },
       open: { type: DataTypes.BOOLEAN, defaultValue: true },
       status_text: { type: DataTypes.STRING, defaultValue: '' },
+      projectname: { type: DataTypes.STRING },
     },
     {
       sequelize,

@@ -140,17 +140,13 @@ suite('Functional Tests', function () {
         .end((err, res) => {
           expect(res).to.be.json
 
-          const json = JSON.parse(res.body)
+          const issues = JSON.parse(res.body)
 
-          assert.isArray(json)
-          assert.lengthOf(json, 3)
+          assert.isArray(issues)
+          assert.lengthOf(issues, 3)
 
-          json.forEach((issue, index) => {
-            const { issue_title, issue_text, created_by } = mockIssues[index]
-
-            assert.equal(issue.issue_title, issue_title)
-            assert.equal(issue.issue_text, issue_text)
-            assert.equal(issue.created_by, created_by)
+          issues.forEach((issue, index) => {
+            assert.nestedInclude(issue, mockIssues[index])
             assert.property(issue, 'assigned_to')
             assert.property(issue, 'status_text')
             assert.property(issue, 'open')
