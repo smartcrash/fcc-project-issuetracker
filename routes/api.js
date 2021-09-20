@@ -30,7 +30,12 @@ module.exports = function (app) {
       }
 
       Issue.create({ ...issue })
-        .then(issue => res.json(issue.toJSON()))
+        .then(issue =>
+          res.json({
+            ...issue.toJSON(),
+            _id: String(issue._id),
+          })
+        )
         .catch(error => console.log(error))
     })
 

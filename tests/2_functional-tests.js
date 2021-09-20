@@ -46,19 +46,24 @@ suite('Functional Tests', function () {
         assert.equal(res.status, 200)
         assert.equal(res.type, 'application/json')
 
-        expect(res.body.issue_title).equal(issue_title)
-        expect(res.body.issue_text).equal(issue_text)
-        expect(res.body.created_by).equal(created_by)
-        expect(res.body.assigned_to).equal(assigned_to)
-        expect(res.body.status_text).equal(status_text)
+        const data = res.body
+
+        assert.isObject(data)
+        assert.nestedInclude(data, { issue_title, issue_text, created_by, assigned_to, status_text })
+        assert.property(data, '_id')
+        assert.isNotEmpty(data._id)
 
         /** Additionally, include created_on (date/time),
          * updated_on (date/time), open (boolean, true for open - default value, false
          * for closed), and _id.
          * */
-        expect(res.body.created_on).to.be.a.dateString()
-        expect(res.body.updated_on).to.be.a.dateString()
-        expect(res.body.open).equal(true)
+        assert.property(data, 'created_on')
+        assert.isNumber(Date.parse(data.created_on))
+        assert.property(data, 'updated_on')
+        assert.isNumber(Date.parse(data.updated_on))
+        assert.property(data, 'open')
+        assert.isBoolean(data.open)
+        assert.isTrue(data.open)
 
         done()
       })
@@ -85,8 +90,12 @@ suite('Functional Tests', function () {
          * be returned as empty strings.
          * */
 
-        expect(res.body.assigned_to).equal('')
-        expect(res.body.status_text).equal('')
+        const data = res.body
+
+        assert.property(data, 'status_text')
+        assert.isEmpty(data.status_text)
+        assert.property(data, 'assigned_to')
+        assert.isEmpty(data.assigned_to)
 
         done()
       })
