@@ -126,17 +126,16 @@ suite('Functional Tests', function () {
       created_by: faker.name.firstName(),
     }))
 
-    Promise.all(
-      mockIssues.map(issue =>
-        chai //
-          .request(server)
-          .post('/api/issues/{project}')
-          .send(issue)
-      )
-    ).then(() => {
+    const url = '/api/issues/get_issues_test_' + Date.now().toString().substring(7)
+
+    Promise.all(mockIssues.map(issue => chai.request(server).post(url).send(issue))).then(([data1, data2, data3]) => {
+      assert.isObject(data1)
+      assert.isObject(data2)
+      assert.isObject(data3)
+
       chai
         .request(server)
-        .get('/api/issues/{project}')
+        .get(url)
         .end((err, res) => {
           expect(res).to.be.json
 
