@@ -120,8 +120,8 @@ suite('Functional Tests', function () {
   })
 
   test('View issues on a project: GET request to /api/issues/{project}', done => {
-    const mockIssues = times(3, () => ({
-      issue_title: faker.lorem.sentence(),
+    const mockIssues = times(3, index => ({
+      issue_title: `Issue ${index + 1}`,
       issue_text: faker.lorem.sentences(),
       created_by: faker.name.firstName(),
     }))
@@ -139,13 +139,19 @@ suite('Functional Tests', function () {
         .end((err, res) => {
           expect(res).to.be.json
 
-          const issues = JSON.parse(res.body)
+          // const issues = JSON.parse(res.body)
+          const issues = res.body
 
           assert.isArray(issues)
           assert.lengthOf(issues, 3)
 
-          issues.forEach((issue, index) => {
-            assert.nestedInclude(issue, mockIssues[index])
+          const regexp = /Issue \d/
+
+          issues.forEach(issue => {
+            assert.property(issue, 'issue_title')
+            assert.match(issue.issue_title, regexp)
+            assert.property(issue, 'issue_text')
+            assert.property(issue, 'created_by')
             assert.property(issue, 'assigned_to')
             assert.property(issue, 'status_text')
             assert.property(issue, 'open')
@@ -189,15 +195,15 @@ suite('Functional Tests', function () {
         .request(server)
         .get('/api/issues/{project}?created_by=Alice')
         .end((err, res) => {
-          assert.isArray(JSON.parse(res.body))
-          assert.lengthOf(JSON.parse(res.body), 2)
+          assert.isArray(res.body)
+          assert.lengthOf(res.body, 2)
 
           chai
             .request(server)
             .get('/api/issues/{project}?created_by=Carol')
             .end((err, res) => {
-              assert.isArray(JSON.parse(res.body))
-              assert.lengthOf(JSON.parse(res.body), 1)
+              assert.isArray(res.body)
+              assert.lengthOf(res.body, 1)
               done()
             })
         })
@@ -232,15 +238,15 @@ suite('Functional Tests', function () {
         .request(server)
         .get('/api/issues/{project}?created_by=Alice&assigned_to=Bob')
         .end((err, res) => {
-          assert.isArray(JSON.parse(res.body))
-          assert.lengthOf(JSON.parse(res.body), 2)
+          assert.isArray(res.body)
+          assert.lengthOf(res.body, 2)
 
           chai
             .request(server)
             .get('/api/issues/{project}?created_by=Carol&assigned_to=Eric')
             .end((err, res) => {
-              assert.isArray(JSON.parse(res.body))
-              assert.lengthOf(JSON.parse(res.body), 1)
+              assert.isArray(res.body)
+              assert.lengthOf(res.body, 1)
               done()
             })
         })
@@ -278,7 +284,7 @@ suite('Functional Tests', function () {
               .request(server)
               .get(`/api/issues/{project}?_id=${itemToUpdate._id}`)
               .end((err, res) => {
-                const body = JSON.parse(res.body)
+                const body = res.body
                 assert.isArray(body)
                 assert.isObject(body[0])
                 assert.equal(body[0].issue_text, 'New Issue Text')
@@ -319,7 +325,7 @@ suite('Functional Tests', function () {
               .request(server)
               .get(`/api/issues/{project}?_id=${itemToUpdate._id}`)
               .end((err, res) => {
-                const body = JSON.parse(res.body)
+                const body = res.body
                 assert.isArray(body)
                 assert.isObject(body[0])
                 assert.equal(body[0].issue_title, 'New Issue Title')
@@ -410,9 +416,8 @@ suite('Functional Tests', function () {
               .request(server)
               .get(`/api/issues/{project}?_id=${itemToDelete._id}`)
               .end((err, res) => {
-                const body = JSON.parse(res.body)
-                assert.isArray(body)
-                assert.lengthOf(body, 0)
+                assert.isArray(res.body)
+                assert.lengthOf(res.body, 0)
                 done()
               })
           })

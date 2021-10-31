@@ -13,7 +13,7 @@ module.exports = function (app) {
       const filters = pick(req.query, ['_id', 'created_by', 'assigned_to', 'open'])
       if (filters.open) filters.open = filters.open === 'true' ? true : false
 
-      Issue.findAll({ where: { ...filters, projectname } }).then(issues => res.json(JSON.stringify(issues)))
+      Issue.findAll({ where: { ...filters, projectname } }).then(issues => res.json(issues))
     })
 
     .post(function (req, res) {
