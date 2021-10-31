@@ -11,6 +11,7 @@ module.exports = function (app) {
     .get(function (req, res) {
       const { projectname } = req.params
       const filters = pick(req.query, ['_id', 'created_by', 'assigned_to', 'open'])
+      if (filters.open) filters.open = filters.open === 'true' ? true : false
 
       Issue.findAll({ where: { ...filters, projectname } }).then(issues => res.json(JSON.stringify(issues)))
     })
