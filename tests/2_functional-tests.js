@@ -350,7 +350,7 @@ suite('Functional Tests', function () {
         issue_text: 'New Issue Text',
       })
       .end((err, res) => {
-        expect(res.body).to.eql({ error: 'missing _id' })
+        assert.deepEqual(res.body, { error: 'missing _id' })
         done()
       })
   })
@@ -365,7 +365,7 @@ suite('Functional Tests', function () {
       .put('/api/issues/{project}')
       .send({ _id: 1 })
       .end((err, res) => {
-        expect(res.body).to.eql({ error: 'no update field(s) sent', _id: 1 })
+        assert.deepEqual(res.body, { error: 'no update field(s) sent', _id: 1 })
         done()
       })
   })
@@ -379,7 +379,7 @@ suite('Functional Tests', function () {
         issue_text: faker.lorem.sentences(),
       })
       .end((err, res) => {
-        expect(res.body).to.eql({ error: 'could not update', _id: 'f00b4r' })
+        assert.deepEqual(res.body, { error: 'could not update', _id: 'f00b4r' })
         done()
       })
   })
@@ -407,10 +407,7 @@ suite('Functional Tests', function () {
           .delete('/api/issues/{project}')
           .send({ _id: itemToDelete._id })
           .end((err, res) => {
-            expect(res.body).to.eql({
-              result: 'successfully deleted',
-              _id: itemToDelete._id,
-            })
+            assert.deepEqual(res.body, { result: 'successfully deleted', _id: itemToDelete._id })
 
             chai
               .request(server)
@@ -430,7 +427,7 @@ suite('Functional Tests', function () {
       .delete('/api/issues/{project}')
       .send({ _id: 'f00b4r' })
       .end((err, res) => {
-        expect(res.body).to.eql({ error: 'could not delete', _id: 'f00b4r' })
+        assert.deepEqual(res.body, { error: 'could not delete', _id: 'f00b4r' })
         done()
       })
   })
@@ -441,7 +438,7 @@ suite('Functional Tests', function () {
       .delete('/api/issues/{project}')
       .send({})
       .end((err, res) => {
-        expect(res.body).to.eql({ error: 'missing _id' })
+        assert.deepEqual(res.body, { error: 'missing _id' })
         done()
       })
   })
