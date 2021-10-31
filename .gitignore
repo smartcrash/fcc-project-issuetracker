@@ -1,3 +1,4 @@
 /node_modules/
 .env
 *.vscode
+127.0.0.1
